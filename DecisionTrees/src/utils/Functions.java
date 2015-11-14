@@ -50,6 +50,15 @@ public class Functions {
     }
 
     /**
+     * Returns values of a column without duplication.
+     * @param column
+     * @return
+     */
+    public static List<String> Values(List<String> column){
+        return new ArrayList<String>(new HashSet<String>(column));
+    }
+
+    /**
      * Returns log_b(x)
      * @param x
      * @param b
@@ -100,15 +109,6 @@ public class Functions {
     }
 
     /**
-     * Returns values of a column without duplication.
-     * @param column
-     * @return
-     */
-    private static List<String> Values(List<String> column){
-        return new ArrayList<String>(new HashSet<String>(column));
-    }
-
-    /**
      * Returns elements of mixedColumn (column and classifier column), filtered by value.
      * @param mixedColumn
      * @param value
@@ -116,7 +116,7 @@ public class Functions {
      */
     private static List<Tuple<String, String>> Values(List<Tuple<String,String>> mixedColumn, String value){
         return mixedColumn.stream()
-                .filter(t -> t.x.equals(value))
+                .filter(t -> t.x.equalsIgnoreCase(value))
                 .collect(Collectors.toList());
     }
 
@@ -128,7 +128,7 @@ public class Functions {
      */
     private static long Occurrences(List<String> column, String value){
         return column.stream()
-                .filter(s -> s.equals(value))
+                .filter(s -> s.equalsIgnoreCase(value))
                 .count();
     }
 
@@ -140,14 +140,12 @@ public class Functions {
      */
     private static long OccurrencesTuple(List<Tuple<String,String>> mixedColumn, String value){
         return mixedColumn.stream()
-                .filter(t -> t.y.equals(value))
+                .filter(t -> t.y.equalsIgnoreCase(value))
                 .count();
     }
 
     public static void main(String[] args){
-        Table t = CSVReader.Parse("foo.csv");
-
-        List<String> column = new ArrayList<String>(){{ add("alto"); add("bajo"); add("alto"); add("medio"); }};
+        Table t = new Table(CSVReader.Parse("foo.csv"));
 
         System.out.println(Functions.Gain(t, "PA"));
     }

@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public class CSVReader{
 
-    public static Table Parse(String filename){
+    public static List<List<String>> Parse(String filename){
         Scanner sc = null;
         List<List<String>> data = new ArrayList<List<String>>();
 
@@ -31,11 +31,11 @@ public class CSVReader{
                 sc.close();
         }
 
-        return new Table(data);
+        return data;
     }
 
     public static void main(String[] args){
-        Table t = CSVReader.Parse("foo.csv");
+        Table t = new Table(CSVReader.Parse("foo.csv"));
 
         System.out.println(t);
     }
