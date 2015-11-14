@@ -2,14 +2,17 @@ package ds;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Table {
 
-    private List<String> attributes;
-    private String[][] values;
+    private List<String> attributes;    // Attributes for each fcolumn
+    private String[][] values;          // Actual data of the table
 
 
+    /**
+     * Constructor that initialize the table with the given data.
+     * @param data
+     */
     public Table(List<List<String>> data){
         int rows = data.size()-1; // We don't count attributes
         int cols = data.get(0).size();
@@ -21,8 +24,8 @@ public class Table {
     }
 
     /**
-     * Return the selected column with the classifier column.
-     * @param idx
+     * Return a list of Tuples(Desired column_i, Classifying column_i)
+     * @param attr
      * @return
      */
     public List<Tuple<String, String>> getMixedColumn(String attr){
@@ -37,6 +40,20 @@ public class Table {
         return ret;
     }
 
+    /**
+     * Return the desired column, given the attribute String.
+     * @param attr
+     * @return
+     */
+    public List<String> getColumn(String attr){
+        return getColumn(attributes.indexOf(attr));
+    }
+
+    /**
+     * Return the desired column, given the column idx.
+     * @param idx
+     * @return
+     */
     public List<String> getColumn(int idx){
         List<String> col = new ArrayList<String>();
 
@@ -46,19 +63,27 @@ public class Table {
         return col;
     }
 
-    public List<String> getColumn(String attr){
-        return getColumn(attributes.indexOf(attr));
-    }
-
-    // TODO: set clasifying column
+    /**
+     * Return the column that is being classified.
+     * @return
+     */
     public List<String> classColumn(){
+        // TODO: set classifying column
         return getColumn(attributes.size()-1);
     }
 
+    /**
+     * Set the attributes list.
+     * @param attrs
+     */
     public void setAttributes(List<String> attrs){
         attributes = attrs;
     }
 
+    /**
+     * Insert the given data into the table.
+     * @param data
+     */
     public void populate(List<List<String>> data){
         // Set labels
         setAttributes(data.get(0));
@@ -71,6 +96,10 @@ public class Table {
         }
     }
 
+    /**
+     * Returns a String representation of the table.
+     * @return
+     */
     public String toString(){
         StringBuilder res = new StringBuilder();
 
