@@ -1,0 +1,15 @@
+PA, AS, IC, AA, OA, AF
+alta, alto, alto, no, no, si
+alta, alto, alto, si, no, si
+baja, alto, bajo, no, no, si
+media, alto, alto, no, si, no
+media, bajo, alto, si, si, no
+baja, bajo, alto, si, si, si
+alta, bajo, alto, si, no, si
+alta, bajo, bajo, no, si, si
+alta, alto, bajo, si, si, no
+baja, bajo, alto, si, si, si
+media, bajo, bajo, si, si, si
+alta, bajo, alto, si, si, no
+baja, alto, alto, si, si, si
+baja, alto, bajo, no, no, si
