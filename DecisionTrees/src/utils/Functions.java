@@ -2,7 +2,10 @@ package utils;
 
 import ds.Table;
 import ds.Tuple;
+import id3.ID3;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,7 +58,20 @@ public class Functions {
      * @return
      */
     public static List<String> Values(List<String> column){
-        return new ArrayList<String>(new HashSet<String>(column));
+        // Non-duplciated values
+        List<String> values = new ArrayList<String>(new HashSet<String>(column));
+
+        // Calculate values and occurrences
+        List<Tuple<String, Long>> occurrences = values.stream()
+                .map(v -> new Tuple<String, Long>(v, Occurrences(column, v)))
+                .collect(Collectors.toList());
+
+        // Sort list by occurrences
+        Collections.sort(occurrences, new ID3.LongTupleComparator());
+
+
+        // Convert to a (ordered) list of values without repetition
+        return occurrences.stream().map(t -> t.x).collect(Collectors.toList());
     }
 
     /**
@@ -88,7 +104,7 @@ public class Functions {
 
         return Values(column).stream()
                 .map(v -> Occurrences(column, v) / colSize)
-                .filter(p -> p != 0)
+                .filter(p -> p != 0.0)
                 .collect(Collectors.toList());
     }
 
@@ -146,8 +162,21 @@ public class Functions {
 
     public static void main(String[] args){
         Table t = new Table(CSVReader.Parse("foo.csv"));
+        t.setTargetAttribute("AF");
+        Table t1 = t.restrictValue("PA", "alta");
+        Table t2 = t1.restrictAttribute("PA");
 
-        System.out.println(Functions.Gain(t, "PA"));
+        System.out.println("T2 - " + Functions.Entropy(t2));
+        System.out.println("AS=Alto " + Functions.Entropy(t2, "AS", "alto"));
+        System.out.println("AS=Bajo " + Functions.Entropy(t2, "AS", "bajo"));
+        System.out.println("IC=Alto " + Functions.Entropy(t2, "IC", "alto"));
+        System.out.println("IC=Bajo " + Functions.Entropy(t2, "IC", "bajo"));
+        System.out.println("AA=no " + Functions.Entropy(t2, "AA", "no"));
+        System.out.println("AA=si " + Functions.Entropy(t2, "AA", "si"));
+        System.out.println("OA=no " + Functions.Entropy(t2, "OA", "no"));
+        System.out.println("OA=si " + Functions.Entropy(t2, "OA", "si"));
+
+        System.out.println(t2);
     }
 
 }

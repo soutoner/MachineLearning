@@ -85,7 +85,7 @@ public class ID3 {
                 .map(a -> new Tuple<String, Double>(a, Functions.Gain(examples, a)))
                 .collect(Collectors.toList());
         // Select the highest one
-        return attrGains.stream().max(new TupleComparator()).get().x;
+        return attrGains.stream().max(new DoubleTupleComparator()).get().x;
     }
 
     /**
@@ -138,7 +138,7 @@ public class ID3 {
     /**
      * Comparator for (attribute, gain) tuples.
      */
-    static class TupleComparator implements Comparator<Tuple<String, Double>> {
+    static class DoubleTupleComparator implements Comparator<Tuple<String, Double>>{
         /**
          * Compare two tuples (attribute, gain). Uses gains as ordering.
          * @param t1
@@ -149,5 +149,22 @@ public class ID3 {
             return t1.y.compareTo(t2.y);
         }
     }
+
+    /**
+     * Comparator for (attribute, occurrences) tuples.
+     */
+    static public class LongTupleComparator implements Comparator<Tuple<String, Long>>{
+        /**
+         * Compare two tuples (attribute, occurrences). Uses occurrences as ordering.
+         * @param t1
+         * @param t2
+         * @return
+         */
+        public int compare(Tuple<String, Long> t1, Tuple<String, Long> t2){
+            return -t1.y.compareTo(t2.y);
+        }
+    }
+
+
 
 }
