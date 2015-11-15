@@ -16,7 +16,7 @@ public class Functions {
      * @return Entropy(S)
      */
     public static double Entropy(Table data){
-        List<Double> probabilities = Probabilities(data.classColumn());
+        List<Double> probabilities = Probabilities(data.getTargetColumn());
 
         return Entropy(probabilities);
     }
@@ -98,7 +98,7 @@ public class Functions {
      * @return
      */
     private static List<Double> Probabilities(Table data, String column, String val){
-        List<String> classes = Values(data.classColumn());
+        List<String> classes = Values(data.getTargetColumn());
         List<Tuple<String, String>> mixedValues = Values(data.getMixedColumn(column), val);
         double colSize = mixedValues.size();
 

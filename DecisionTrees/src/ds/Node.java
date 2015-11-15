@@ -1,86 +1,96 @@
 package ds;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Node<T> {
 
-    private List<Tuple<String, Node<T>>> children;  // List of children (node, relationship label)
-    private Node<T> parent;                        // Parent node
+    private List<Node<T>> children;     // List of children nodes
+    private Node<T> parent;             // Parent node
+    private String label;               // Label from parent
     private T data;
 
 
     /**
-     * Constructor of Node given the data and the children labels.
+     * Creates a Node given data.
      * @param data
-     * @param labels
      */
-    public Node(T data, List<String> labels) {
-        this(data, labels, null);
-    }
-
-    /**
-     * Constructor of Node given the data and the parent node
-     * @param data
-     * @param parent
-     */
-    public Node(T data, Node<T> parent) {
-        this(data, null, parent);
-    }
-
-    /**
-     * Constructor of Node given the data, children labels and the parent node.
-     * @param data
-     * @param labels
-     * @param parent
-     */
-    public Node(T data, List<String> labels, Node<T> parent) {
-        this.children = populateChildren(labels);
-        this.parent = parent;
+    public Node(T data){
+        this.children = new ArrayList<Node<T>>();
+        this.parent = null;
+        this.label = null;
         this.data = data;
     }
 
     /**
-     * Add a bunch of children given the label of their relationship.
-     * @param labels
-     */
-    private List<Tuple<String, Node<T>>> populateChildren(List<String> labels){
-        if(labels != null)
-            return labels.stream()
-                    .map(l -> new Tuple<String, Node<T>>(l, new Node<T>(null, this)))
-                    .collect(Collectors.toList());
-        else
-            return new ArrayList<Tuple<String, Node<T>>>();
-    }
-
-    /**
-     * Get the list of children nodes.
+     * Get the list of children nodes with labels.
      * @return
      */
-    public List<Tuple<String,Node<T>>> getChildren() {
+    public List<Node<T>> getChildren() {
         return children;
     }
 
     /**
-     * Set the list of children nodes given the list of labels.
-     * @return
+     * Add the child to this node children list with the given label in the relationship.
+     * @param child
      */
-    public void setChildren(List<String> labels) {
-        children = populateChildren(labels);
+    public void addChild(Node<T> child, String label) {
+        child.parent = this;
+        child.label = label;
+        this.children.add(child);
     }
 
-    public void setData(T data) {
-        this.data = data;
+    /**
+     * Return if a node has children.
+     * @return
+     */
+    public boolean hasChildren(){
+        return !children.isEmpty();
     }
 
     public String toString(){
+        return data.toString();
+    }
+
+    public String printTree(){
         StringBuilder res = new StringBuilder();
 
-        res.append("** " + data + " **");
-        for(Tuple<String, Node<T>> child: getChildren()){
-            res.append(child.y);
+        List<Node<T>> stack = new ArrayList<Node<T>>();
+        List<Node<T>> visited = new ArrayList<Node<T>>();
+        stack.add(this);
+        int level = 0;
+        boolean nl = false;
+
+        while(!stack.isEmpty()){
+            Node<T> n = stack.get(0);
+
+            if(visited.contains(n)){
+                stack.remove(n);
+                visited.remove(n);
+                level--;
+            } else {
+                if(nl) {
+                    for (int i = 0; i < level; i++)
+                        res.append("\t ");
+                    nl = false;
+                }
+                res.append(" -(" + n.label + ")-> " + n.data);
+                if(n.hasChildren()){
+                    visited.add(n);
+                    // Insert children in reverse order
+                    List<Node<T>> children = n.getChildren();
+                    Collections.reverse(children);
+                    stack.addAll(0, children);
+                    level++;
+                } else {
+                    stack.remove(n);
+                    res.append("\n"); nl = true;
+                }
+            }
         }
+
+        res.append("\n");
 
         return res.toString();
     }

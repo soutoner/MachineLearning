@@ -6,76 +6,84 @@ import java.util.stream.Collectors;
 
 public class Table {
 
-    private List<String> attributes;    // Attributes for each column
-    private String[][] values;          // Actual data of the table
-    private int classifyingColumn;      // By default, last column
-
+    private List<String> attributes;    // Attributes for the table
+    private List<List<String>> values;  // Actual data of the table
+    private int targetColumnIdx;        // By default, last column
 
     /**
-     * Constructor that initialize the table with the given data.
+     * Constructor that initialize the table with the given data (attributes + values)
      * @param data
      */
     public Table(List<List<String>> data){
-        int rows = data.size()-1; // We don't count attributes
-        int cols = data.get(0).size();
-
-        this.values = new String[rows][cols];
-        this.attributes = new ArrayList<String>();
-        this.classifyingColumn = cols-1;
-
-        populate(data);
+        this.attributes = data.remove(0);
+        this.values = data;
+        this.targetColumnIdx = data.size()-1;
     }
 
     /**
-     * Insert the given data into the table.
+     * Constructor that initialize the table given the attributes, data, and target attribute.
      * @param data
      */
-    public void populate(List<List<String>> data){
-        // Set labels
-        attributes = data.get(0);
-
-        for(int i=1; i<data.size(); i++){
-            List<String> row = data.get(i);
-            for(int j=0; j<row.size(); j++){
-                values[i-1][j] = row.get(j);
-            }
-        }
-    }
-
-    public Table restrict(Tuple<String, String> restriction){
-        List<List<String>> restrictedTable = new ArrayList<List<String>>();
-
-        String attribute = restriction.x;
-        String value = restriction.y;
-        int restrictedColumnIdx = attributes.indexOf(attribute);
-
-        // Add restricted attributes
-        List<String> restrictedAttrs = attributes.stream()
-                .filter(a -> !a.equalsIgnoreCase(attribute))
-                .collect(Collectors.toList());
-        restrictedTable.add(restrictedAttrs);
-
-        // Add restricted values
-        for(int i=0;i<values.length; i++) {
-            if(values[i][restrictedColumnIdx].equalsIgnoreCase(value)){
-                String[] row = values[i];
-                List<String> restrictedRow = new ArrayList<String>();
-
-                for (int j = 0; j < row.length; j++) {
-                    if(j != restrictedColumnIdx)
-                        restrictedRow.add(values[i][j]);
-                }
-
-                restrictedTable.add(restrictedRow);
-            }
-        }
-
-
-        return new Table(restrictedTable);
+    public Table(List<String> attributes, List<List<String>> data, String target){
+        this.attributes = attributes;
+        this.values = data;
+        this.targetColumnIdx = attributes.indexOf(target);
     }
 
     /**
-     * Return a list of Tuples(Desired column_i, Classifying column_i)
+     * Return a table with the rows limited by a given value in a given attribute.
+     * @param attribute
+     * @param value
+     * @return
+     */
+    public Table restrictValue(String attribute, String value){
+        int restrictedColIdx = this.attributes.indexOf(attribute);
+
+        List<List<String>> restrictedRows = this.values.stream()
+                .filter(row -> row.get(restrictedColIdx).equalsIgnoreCase(value))
+                .collect(Collectors.toList());
+
+        return new Table(this.attributes, restrictedRows, this.attributes.get(targetColumnIdx));
+    }
+
+    /**
+     * Returns a table without an specific column given attribute.
+     * @param attribute
+     * @return
+     */
+    public Table restrictAttribute(String attribute){
+        int restrictedColIdx = this.attributes.indexOf(attribute);
+
+        List<String> restrictedAttributes = this.attributes.stream()
+                .filter(a -> !a.equalsIgnoreCase(attribute))
+                .collect(Collectors.toList());
+
+        List<List<String>> restrictedRows = this.values.stream()
+                .map(row -> rowWithout(row, restrictedColIdx))
+                .collect(Collectors.toList());
+
+        return new Table(restrictedAttributes, restrictedRows, this.attributes.get(targetColumnIdx));
+    }
+
+    /**
+     * Removes from a row the given element at position idx
+     * @param row
+     * @param idx
+     * @return
+     */
+    private List<String> rowWithout(List<String> row, int idx){
+        List<String> ret = new ArrayList<String>();
+
+        for(int i=0;i<row.size();i++){
+            if(i != idx)
+                ret.add(row.get(i));
+        }
+
+        return ret;
+    }
+
+    /**
+     * Return a list of Tuples(Desired column_i, Target column_i)
      * @param attr
      * @return
      */
@@ -84,18 +92,14 @@ public class Table {
     }
 
     /**
-     * Return a list of Tuples(Desired column_i, Classifying column_i)
+     * Return a list of Tuples(Desired column_i, Target column_i)
      * @param idx
      * @return
      */
     public List<Tuple<String, String>> getMixedColumn(int idx){
-        List<Tuple<String, String>> mixedCol = new ArrayList<Tuple<String,String>>();
-
-        for(int i=0; i<values.length; i++){
-            mixedCol.add(new Tuple<String, String>(values[i][idx], values[i][classifyingColumn]));
-        }
-
-        return mixedCol;
+        return values.stream()
+                .map(row -> new Tuple<String, String>(row.get(idx), row.get(targetColumnIdx)))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -113,39 +117,43 @@ public class Table {
      * @return
      */
     public List<String> getColumn(int idx){
-        List<String> col = new ArrayList<String>();
-
-        for(int i=0; i<values.length; i++){
-            col.add(values[i][idx]);
-        }
-
-        return col;
-    }
-
-    /**
-     * Return the column that is being classified.
-     * @return
-     */
-    public List<String> classColumn(){
-        return getColumn(classifyingColumn);
-    }
-
-    /**
-     * Get the attributes list except the classifying attribute.
-     * @return
-     */
-    public List<String> getAttributes() {
-        return attributes.stream()
-                .filter(a -> attributes.indexOf(a) != classifyingColumn)
+        return values.stream()
+                .map(row -> row.get(idx))
                 .collect(Collectors.toList());
     }
 
     /**
-     * Set the classifying column to the given attribute.
+     * Return the target column.
+     * @return
+     */
+    public List<String> getTargetColumn(){
+        return getColumn(targetColumnIdx);
+    }
+
+    /**
+     * Get the attributes list except the target attribute.
+     * @return
+     */
+    public List<String> getAttributes() {
+        return attributes.stream()
+                .filter(a -> attributes.indexOf(a) != targetColumnIdx)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Set the target attribute.
      * @param attribute
      */
-    public void setClassifyingColumn(String attribute){
-        classifyingColumn = attributes.indexOf(attribute);
+    public void setTargetAttribute(String attribute){
+        targetColumnIdx = attributes.indexOf(attribute);
+    }
+
+    /**
+     * Return if the table is empty (i.e. has no values)
+     * @return
+     */
+    public boolean isEmpty(){
+        return values.isEmpty();
     }
 
     /**
@@ -161,13 +169,8 @@ public class Table {
         }
         res.append("\n");
 
-        for(int i=0; i<values.length; i++){
-            String [] row = values[i];
-
-            res.append(i + " | ");
-            for(int j=0; j<row.length; j++){
-                res.append(values[i][j] + " | ");
-            }
+        for(int i=0; i<values.size(); i++){
+            res.append(i + " " + values.get(i) + " ");
             res.append("\n");
         }
 

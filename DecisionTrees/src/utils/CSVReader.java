@@ -37,6 +37,6 @@ public class CSVReader{
     public static void main(String[] args){
         Table t = new Table(CSVReader.Parse("foo.csv"));
 
-        System.out.println(t);
+        System.out.println(t.restrictValue("PA", "alta"));
     }
 }
