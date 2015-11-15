@@ -133,6 +133,9 @@ public class ID3 {
     public static void main(String [] args){
         ID3 id = new ID3("foo.csv", "AF");
         System.out.println(id.id3(id.data).printTree());
+
+        ID3 idSimpsons = new ID3("ballons.csv", "Inflated");
+        System.out.println(idSimpsons.id3(idSimpsons.data).printTree());
     }
 
     /**

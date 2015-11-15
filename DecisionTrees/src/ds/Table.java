@@ -15,7 +15,7 @@ public class Table {
      * @param data
      */
     public Table(List<List<String>> data){
-        this.attributes = data.remove(0);
+        this.attributes = data.remove(0).stream().map(a -> a.toLowerCase()).collect(Collectors.toList());
         this.values = data;
         this.targetColumnIdx = data.size()-1;
     }
@@ -27,7 +27,7 @@ public class Table {
     public Table(List<String> attributes, List<List<String>> data, String target){
         this.attributes = attributes;
         this.values = data;
-        this.targetColumnIdx = attributes.indexOf(target);
+        this.targetColumnIdx = attributes.indexOf(target.toLowerCase());
     }
 
     /**
@@ -37,7 +37,7 @@ public class Table {
      * @return
      */
     public Table restrictValue(String attribute, String value){
-        int restrictedColIdx = this.attributes.indexOf(attribute);
+        int restrictedColIdx = this.attributes.indexOf(attribute.toLowerCase());
 
         List<List<String>> restrictedRows = this.values.stream()
                 .filter(row -> row.get(restrictedColIdx).equalsIgnoreCase(value))
@@ -52,7 +52,7 @@ public class Table {
      * @return
      */
     public Table restrictAttribute(String attribute){
-        int restrictedColIdx = this.attributes.indexOf(attribute);
+        int restrictedColIdx = this.attributes.indexOf(attribute.toLowerCase());
 
         List<String> restrictedAttributes = this.attributes.stream()
                 .filter(a -> !a.equalsIgnoreCase(attribute))
@@ -88,7 +88,7 @@ public class Table {
      * @return
      */
     public List<Tuple<String, String>> getMixedColumn(String attr){
-        return getMixedColumn(attributes.indexOf(attr));
+        return getMixedColumn(attributes.indexOf(attr.toLowerCase()));
     }
 
     /**
@@ -108,7 +108,7 @@ public class Table {
      * @return
      */
     public List<String> getColumn(String attr){
-        return getColumn(attributes.indexOf(attr));
+        return getColumn(attributes.indexOf(attr.toLowerCase()));
     }
 
     /**
@@ -136,7 +136,7 @@ public class Table {
      */
     public List<String> getAttributes() {
         return attributes.stream()
-                .filter(a -> attributes.indexOf(a) != targetColumnIdx)
+                .filter(a -> attributes.indexOf(a.toLowerCase()) != targetColumnIdx)
                 .collect(Collectors.toList());
     }
 
@@ -145,7 +145,7 @@ public class Table {
      * @param attribute
      */
     public void setTargetAttribute(String attribute){
-        targetColumnIdx = attributes.indexOf(attribute);
+        targetColumnIdx = attributes.indexOf(attribute.toLowerCase());
     }
 
     /**
