@@ -1,8 +1,8 @@
 package ds;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Table {
 
@@ -11,30 +11,31 @@ public class Table {
     private int targetColumnIdx;        // By default, last column
 
     /**
-     * Constructor that initialize the table with the given data (attributes + values)
-     * @param data
+     * @param data List of lists. List of Attributes +  List of rows with data
+     * @param targetAttribute Attribute that is being classified
      */
-    public Table(List<List<String>> data){
-        this.attributes = data.remove(0).stream().map(a -> a.toLowerCase()).collect(Collectors.toList());
+    public Table(List<List<String>> data, String targetAttribute){
+        // Save lower cased attributes (to avoid problem in equals)
+        this.attributes = data.remove(0).stream().map(String::toLowerCase).collect(Collectors.toList());
         this.values = data;
-        this.targetColumnIdx = data.size()-1;
+        this.targetColumnIdx = attributes.indexOf(targetAttribute.toLowerCase());
     }
 
     /**
-     * Constructor that initialize the table given the attributes, data, and target attribute.
-     * @param data
+     * @param attributes List of attributes
+     * @param data List of elements row by row
+     * @param targetAttribute Attribute that is being classified
      */
-    public Table(List<String> attributes, List<List<String>> data, String target){
+    public Table(List<String> attributes, List<List<String>> data, String targetAttribute){
         this.attributes = attributes;
         this.values = data;
-        this.targetColumnIdx = attributes.indexOf(target.toLowerCase());
+        this.targetColumnIdx = attributes.indexOf(targetAttribute.toLowerCase());
     }
 
     /**
-     * Return a table with the rows limited by a given value in a given attribute.
-     * @param attribute
-     * @param value
-     * @return
+     * @param attribute Column attribute
+     * @param value Value that must appear
+     * @return Table with the rows restricted to the rows that has 'value' in column 'attribute'
      */
     public Table restrictValue(String attribute, String value){
         int restrictedColIdx = this.attributes.indexOf(attribute.toLowerCase());
@@ -47,9 +48,8 @@ public class Table {
     }
 
     /**
-     * Returns a table without an specific column given attribute.
-     * @param attribute
-     * @return
+     * @param attribute Column attribute
+     * @return Table without an specific column
      */
     public Table restrictAttribute(String attribute){
         int restrictedColIdx = this.attributes.indexOf(attribute.toLowerCase());
@@ -59,42 +59,23 @@ public class Table {
                 .collect(Collectors.toList());
 
         List<List<String>> restrictedRows = this.values.stream()
-                .map(row -> rowWithout(row, restrictedColIdx))
+                .map(row -> removeFromList(row, restrictedColIdx))
                 .collect(Collectors.toList());
 
         return new Table(restrictedAttributes, restrictedRows, this.attributes.get(targetColumnIdx));
     }
 
     /**
-     * Removes from a row the given element at position idx
-     * @param row
-     * @param idx
-     * @return
+     * @param attribute Column attribute
+     * @return List of Tuples(Desired column_i, Target column_i)
      */
-    private List<String> rowWithout(List<String> row, int idx){
-        List<String> ret = new ArrayList<String>();
-
-        for(int i=0;i<row.size();i++){
-            if(i != idx)
-                ret.add(row.get(i));
-        }
-
-        return ret;
+    public List<Tuple<String, String>> getMixedColumn(String attribute){
+        return getMixedColumn(attributes.indexOf(attribute.toLowerCase()));
     }
 
     /**
-     * Return a list of Tuples(Desired column_i, Target column_i)
-     * @param attr
-     * @return
-     */
-    public List<Tuple<String, String>> getMixedColumn(String attr){
-        return getMixedColumn(attributes.indexOf(attr.toLowerCase()));
-    }
-
-    /**
-     * Return a list of Tuples(Desired column_i, Target column_i)
-     * @param idx
-     * @return
+     * @param idx Column index
+     * @return List of Tuples(Desired column_i, Target column_i)
      */
     public List<Tuple<String, String>> getMixedColumn(int idx){
         return values.stream()
@@ -103,18 +84,16 @@ public class Table {
     }
 
     /**
-     * Return the desired column, given the attribute String.
-     * @param attr
-     * @return
+     * @param attribute Column attribute
+     * @return Desired column, given the attribute String
      */
-    public List<String> getColumn(String attr){
-        return getColumn(attributes.indexOf(attr.toLowerCase()));
+    public List<String> getColumn(String attribute){
+        return getColumn(attributes.indexOf(attribute.toLowerCase()));
     }
 
     /**
-     * Return the desired column, given the column idx.
-     * @param idx
-     * @return
+     * @param idx Column index
+     * @return Desired column, given the column idx.
      */
     public List<String> getColumn(int idx){
         return values.stream()
@@ -123,58 +102,53 @@ public class Table {
     }
 
     /**
-     * Return the target column.
-     * @return
+     * @return Column of the target attribute.
      */
     public List<String> getTargetColumn(){
         return getColumn(targetColumnIdx);
     }
 
     /**
-     * Get the attributes list except the target attribute.
-     * @return
+     * @return Attribute list except the target attribute.
      */
     public List<String> getAttributes() {
-        return attributes.stream()
-                .filter(a -> attributes.indexOf(a.toLowerCase()) != targetColumnIdx)
+        return IntStream.range(0, attributes.size())
+                .filter(i -> i != targetColumnIdx)
+                .mapToObj(attributes::get)
                 .collect(Collectors.toList());
     }
 
     /**
-     * Set the target attribute.
-     * @param attribute
-     */
-    public void setTargetAttribute(String attribute){
-        targetColumnIdx = attributes.indexOf(attribute.toLowerCase());
-    }
-
-    /**
-     * Return if the table is empty (i.e. has no values)
-     * @return
+     * @return True if the table is empty (i.e. has no values)
      */
     public boolean isEmpty(){
         return values.isEmpty();
     }
 
     /**
-     * Returns a String representation of the table.
-     * @return
+     * @return String representation of the table.
      */
     public String toString(){
         StringBuilder res = new StringBuilder();
 
-        res.append("    ");
-        for(String attr: attributes){
-            res.append(attr + " ");
-        }
-        res.append("\n");
-
-        for(int i=0; i<values.size(); i++){
-            res.append(i + " " + values.get(i) + " ");
-            res.append("\n");
-        }
+        // Attributes
+        res.append("  ").append(attributes).append("\n");
+        // Row of data
+        IntStream.range(0, values.size())
+                .forEach(idx -> res.append(idx).append(" ").append(values.get(idx)).append("\n"));
 
         return res.toString();
     }
 
+    /**
+     * @param list List of elements
+     * @param idx Position of the element that's being removed
+     * @return List without the given element at position idx
+     */
+    private static List<String> removeFromList(List<String> list, int idx){
+        return IntStream.range(0, list.size())
+                .filter(i -> i != idx)
+                .mapToObj(list::get)
+                .collect(Collectors.toList());
+    }
 }

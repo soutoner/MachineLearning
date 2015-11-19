@@ -1,7 +1,5 @@
 package utils;
 
-import ds.Table;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -21,7 +19,7 @@ public class CSVReader{
                 List<String> row = Arrays.asList(sc.next().split(","));
 
                 // Trim whitespaces and add to the table
-                data.add(row.stream().map(elem -> elem.trim()).collect(Collectors.toList()));
+                data.add(row.stream().map(String::trim).collect(Collectors.toList()));
             }
         } catch (FileNotFoundException e) {
             System.err.println("Check the path of the file or format.");
@@ -32,11 +30,5 @@ public class CSVReader{
         }
 
         return data;
-    }
-
-    public static void main(String[] args){
-        Table t = new Table(CSVReader.Parse("foo.csv"));
-
-        System.out.println(t.restrictValue("PA", "alta"));
     }
 }

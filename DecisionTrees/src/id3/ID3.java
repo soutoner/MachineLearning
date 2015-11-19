@@ -5,8 +5,6 @@ import ds.Table;
 import ds.Tuple;
 import utils.CSVReader;
 import utils.Functions;
-
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -17,13 +15,11 @@ public class ID3 {
     private Table data;
 
     /**
-     * Create the objects and sets de data and classifying column
-     * @param csvFilename
-     * @param targetAttribute
+     * @param csvFilename Filename of the CSV with the data
+     * @param targetAttribute Target attribute
      */
     public ID3(String csvFilename, String targetAttribute){
-        this.data = new Table(CSVReader.Parse(csvFilename));
-        this.data.setTargetAttribute(targetAttribute);
+        this.data = new Table(CSVReader.Parse(csvFilename), targetAttribute);
     }
 
     /**
@@ -43,8 +39,8 @@ public class ID3 {
      *      End
      *      Return decision node N
      *  End
-     * @param examples
-     * @return
+     * @param examples Table with actual data (Contains attributes and target)
+     * @return Decision tree
      */
     public Node<String> id3(Table examples){
         if(allExamplesPositive(examples)){
@@ -73,49 +69,46 @@ public class ID3 {
     }
 
     /**
-     * Return the attribute with the maximum gain.
-     * @param examples
-     * @return
+     * @param examples Table with data
+     * @return Attribute with the maximum gain
      */
-    public String maxGainAttribute(Table examples){
+    private static String maxGainAttribute(Table examples){
         // For all the attributes
         List<String> attributes = examples.getAttributes();
         // Caculate gains of each one (attr, gain)
         List<Tuple<String,Double>> attrGains = attributes.stream()
-                .map(a -> new Tuple<String, Double>(a, Functions.Gain(examples, a)))
+                .map(attr -> new Tuple<String, Double>(attr, Functions.Gain(examples, attr)))
                 .collect(Collectors.toList());
+
         // Select the highest one
         return attrGains.stream().max(new DoubleTupleComparator()).get().x;
     }
 
     /**
-     * Return if all the values in the target column are positive.
-     * @param examples
-     * @return
+     * @param examples Table with data
+     * @return True if all the values in the target column are positive
      */
-    public boolean allExamplesPositive(Table examples) {
+    private static boolean allExamplesPositive(Table examples) {
         return examples.getTargetColumn().stream()
                 .filter(v -> !v.equalsIgnoreCase("Si"))
                 .count() == 0;
     }
 
     /**
-     * Return if all the values in the target column are negative.
-     * @param examples
-     * @return
+     * @param examples Table with data
+     * @return True if all the values in the target column are negative
      */
-    public boolean allExamplesNegative(Table examples) {
+    private static boolean allExamplesNegative(Table examples) {
         return examples.getTargetColumn().stream()
                 .filter(v -> !v.equalsIgnoreCase("No"))
                 .count() == 0;
     }
 
     /**
-     * Return the most common value in the target column.
-     * @param examples
-     * @return
+     * @param examples Table with data
+     * @return Most common value in the target column.
      */
-    public String mostCommonValue(Table examples){
+    private static String mostCommonValue(Table examples){
         Map<String, Long> occurrences = examples.getTargetColumn().stream()
                 .collect(Collectors.groupingBy(w -> w, Collectors.counting()));
 
@@ -131,43 +124,20 @@ public class ID3 {
     }
 
     public static void main(String [] args){
-        ID3 id = new ID3("foo.csv", "AF");
+        ID3 id = new ID3("DecisionTrees/csv/simpsons.csv", "G");
         System.out.println(id.id3(id.data).printTree());
-
-        ID3 idSimpsons = new ID3("ballons.csv", "Inflated");
-        System.out.println(idSimpsons.id3(idSimpsons.data).printTree());
     }
 
-    /**
-     * Comparator for (attribute, gain) tuples.
-     */
     static class DoubleTupleComparator implements Comparator<Tuple<String, Double>>{
         /**
-         * Compare two tuples (attribute, gain). Uses gains as ordering.
-         * @param t1
-         * @param t2
-         * @return
+         *
+         * @param t1 Tuple (attribute, gain)
+         * @param t2 Tuple (attribute, gain)
+         * @return Compare two tuple. Uses gains as ordering.
          */
         public int compare(Tuple<String, Double> t1, Tuple<String, Double> t2){
             return t1.y.compareTo(t2.y);
         }
     }
-
-    /**
-     * Comparator for (attribute, occurrences) tuples.
-     */
-    static public class LongTupleComparator implements Comparator<Tuple<String, Long>>{
-        /**
-         * Compare two tuples (attribute, occurrences). Uses occurrences as ordering.
-         * @param t1
-         * @param t2
-         * @return
-         */
-        public int compare(Tuple<String, Long> t1, Tuple<String, Long> t2){
-            return -t1.y.compareTo(t2.y);
-        }
-    }
-
-
 
 }

@@ -11,10 +11,9 @@ public class Node<T> {
     private String label;               // Label from parent
     private T data;
 
-
     /**
-     * Creates a Node given data.
-     * @param data
+     * Initialize node with given data
+     * @param data Data hold by the node
      */
     public Node(T data){
         this.children = new ArrayList<Node<T>>();
@@ -24,16 +23,9 @@ public class Node<T> {
     }
 
     /**
-     * Get the list of children nodes with labels.
-     * @return
-     */
-    public List<Node<T>> getChildren() {
-        return children;
-    }
-
-    /**
-     * Add the child to this node children list with the given label in the relationship.
-     * @param child
+     * * Add the child to this node children list with the given label in the relationship
+     * @param child Node to be added as a child
+     * @param label Label of the parent-relationship
      */
     public void addChild(Node<T> child, String label) {
         child.parent = this;
@@ -42,17 +34,29 @@ public class Node<T> {
     }
 
     /**
-     * Return if a node has children.
-     * @return
+     * @return List of children nodes
+     */
+    public List<Node<T>> getChildren() {
+        return children;
+    }
+
+    /**
+     * @return True if node has children.
      */
     public boolean hasChildren(){
         return !children.isEmpty();
     }
 
+    /**
+     * @return String representation of the Node
+     */
     public String toString(){
         return data.toString();
     }
 
+    /**
+     * @return String representation of the tree starting by this node as root
+     */
     public String printTree(){
         StringBuilder res = new StringBuilder();
 
